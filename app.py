@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
 from modules.analyzer import Analyzer
-from modules.github_client import GitHubClient
+from modules.github_client import GitHubAPIError, GitHubClient
 from modules.intent_router import IntentRouter
 from modules.knowledge_base import KnowledgeBase
 from modules.learning_path import LearningPathGenerator
@@ -28,11 +28,402 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    :root {
+        --primary: #2f6fed;
+        --primary-hover: #255edb;
+        --primary-soft: #f7faff;
+        --page-bg: #fbfbfa;
+        --panel-bg: #ffffff;
+        --soft-bg: #f8fafc;
+        --nav-active: #f1f1f0;
+        --text-title: #182032;
+        --text-body: #1d2939;
+        --text-muted: #667085;
+        --text-soft: #475467;
+        --border: #e6e8ef;
+        --border-soft: #edf0f5;
+        --danger: #d92d20;
+    }
+    html, body, [class*="css"] {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-body);
+        letter-spacing: 0;
+    }
+    [data-testid="stAppViewContainer"] { background: var(--page-bg); }
+    [data-testid="stHeader"] { background: transparent; }
+    [data-testid="stToolbar"] { display: none; }
     [data-testid="stSidebarNav"] { display: none; }
-    .block-container { max-width: 1280px; padding-top: 1.2rem; padding-bottom: 4.5rem; }
+    [data-testid="stSidebar"] {
+        background: #ffffff;
+        border-right: 1px solid var(--border);
+        min-width: 274px;
+    }
+    [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+        padding: 1rem 0.85rem 1rem 0.85rem;
+    }
+    .block-container {
+        max-width: 1480px;
+        padding-top: 1rem;
+        padding-bottom: 4.5rem;
+    }
     .main .block-container { padding-left: 3rem; padding-right: 3rem; }
+    h1, h2, h3 {
+        color: var(--text-title);
+        letter-spacing: 0;
+    }
+    h1 { font-size: 1.5rem; line-height: 1.25; font-weight: 760; }
+    h2 { font-size: 1.22rem; line-height: 1.3; font-weight: 740; }
+    h3 { font-size: 1.05rem; line-height: 1.35; font-weight: 720; }
+    a { color: var(--text-title); text-decoration: none; }
+    a:hover { color: var(--primary); }
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        padding: 0.15rem 0.45rem 1rem 0.45rem;
+        color: #111111;
+        font-weight: 760;
+    }
+    .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 0.62rem;
+        min-width: 0;
+    }
+    .brand-mark {
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        color: #111111;
+        flex: 0 0 auto;
+    }
+    .brand-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .collapse-mark { color: var(--text-muted); font-size: 0.95rem; }
+    .side-section {
+        color: var(--text-body);
+        font-size: 0.84rem;
+        font-weight: 720;
+        margin: 1.25rem 0.65rem 0.45rem 0.65rem;
+    }
+    .side-muted {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        margin: 0.25rem 0.65rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .side-history-item {
+        background: var(--nav-active);
+        border-radius: 12px;
+        color: var(--text-body);
+        font-size: 0.88rem;
+        padding: 0.58rem 0.75rem;
+        margin: 0.25rem 0 0.4rem 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .account-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-top: 1.5rem;
+        color: var(--text-body);
+        font-size: 0.9rem;
+        font-weight: 650;
+    }
+    .account-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: var(--nav-active);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.82rem;
+        color: var(--text-body);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        gap: 0.24rem;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label {
+        border-radius: 12px;
+        min-height: 2.45rem;
+        padding: 0.18rem 0.72rem;
+        color: var(--text-body);
+        font-weight: 690;
+        transition: background 140ms ease, color 140ms ease;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+        background: var(--soft-bg);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) {
+        background: var(--nav-active);
+        color: #111111;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label p {
+        font-size: 0.96rem;
+        line-height: 1.2;
+        font-weight: 690;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child {
+        display: none;
+    }
+    .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 2.8rem;
+        margin: 0 0 1.2rem 0;
+    }
+    .top-context {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 650;
+    }
+    .top-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    .top-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.42rem;
+        min-height: 2rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 0.22rem 0.65rem;
+        color: var(--text-body);
+        font-weight: 720;
+        font-size: 0.9rem;
+        background: transparent;
+    }
+    .top-pill.secondary { color: var(--text-muted); }
+    .chat-grid {
+        align-items: stretch;
+    }
+    .chat-home {
+        max-width: 820px;
+        margin: 12vh auto 0 auto;
+        text-align: center;
+    }
+    .chat-logo-row {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-bottom: 2.1rem;
+    }
+    .chat-logo-row .brand-mark {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        color: #000000;
+    }
+    .chat-title {
+        font-size: 3.15rem;
+        line-height: 1.05;
+        font-weight: 780;
+        color: #050505;
+        letter-spacing: 0;
+    }
+    .chat-subtitle {
+        color: var(--text-muted);
+        font-size: 0.98rem;
+        margin-top: -1.4rem;
+        margin-bottom: 1rem;
+    }
+    .composer-shell {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #ffffff;
+        padding: 0.58rem 0.62rem 0.58rem 1rem;
+        box-shadow: 0 2px 8px rgba(24, 32, 50, 0.05);
+        margin: 0.45rem 0 0.85rem 0;
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #ffffff;
+        padding: 0.58rem 0.62rem 0.58rem 1rem;
+        box-shadow: 0 2px 8px rgba(24, 32, 50, 0.05);
+        margin: 0.45rem 0 0.85rem 0;
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) div[data-testid="stForm"] {
+        border: 0;
+        padding: 0;
+        background: transparent;
+    }
+    .composer-shell [data-testid="stTextInput"] input {
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        font-size: 1.02rem;
+        color: var(--text-body);
+        padding-left: 0;
+    }
+    .composer-shell [data-testid="stTextInput"] input::placeholder {
+        color: var(--text-muted);
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) [data-testid="stTextInput"] input {
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        font-size: 1.02rem;
+        color: var(--text-body);
+        padding-left: 0;
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) [data-testid="stTextInput"] input::placeholder {
+        color: var(--text-muted);
+    }
+    .composer-shell [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        font-weight: 720;
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        font-weight: 720;
+    }
+    .composer-shell .stButton > button,
+    .composer-shell button[data-testid="baseButton-primary"],
+    .composer-shell button[data-testid="baseButton-secondary"] {
+        min-height: 2.55rem;
+        width: 2.55rem;
+        padding: 0;
+        border-radius: 999px;
+        background: #050505 !important;
+        color: #ffffff !important;
+        border-color: #050505 !important;
+        font-size: 1rem;
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) .stButton > button,
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) button[data-testid="baseButton-primary"],
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stForm"]) button[data-testid="baseButton-secondary"] {
+        min-height: 2.55rem;
+        width: 2.55rem;
+        padding: 0;
+        border-radius: 999px;
+        background: #050505 !important;
+        color: #ffffff !important;
+        border-color: #050505 !important;
+        font-size: 1rem;
+    }
+    .quick-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0.65rem 0 1.2rem 0;
+    }
+    .quick-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.35rem 0.68rem;
+        background: #ffffff;
+        color: var(--text-body);
+        font-size: 0.9rem;
+        font-weight: 650;
+    }
+    .connect-card {
+        max-width: 560px;
+        margin: 1rem auto 0 auto;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: #ffffff;
+        padding: 0.9rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        box-shadow: 0 2px 8px rgba(24, 32, 50, 0.04);
+        text-align: left;
+    }
+    .connect-title { color: var(--text-body); font-weight: 740; font-size: 0.98rem; }
+    .connect-copy { color: var(--text-muted); font-size: 0.88rem; margin-top: 0.12rem; }
+    .connect-action {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.45rem 0.9rem;
+        font-weight: 720;
+        background: #ffffff;
+        white-space: nowrap;
+    }
+    .thread-shell {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+    .thread-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .thought-panel {
+        position: sticky;
+        top: 1rem;
+        min-height: calc(100vh - 2rem);
+        border-left: 1px solid var(--border);
+        padding: 0.1rem 0 1rem 1.15rem;
+        color: var(--text-body);
+        background: var(--page-bg);
+    }
+    .thought-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 1.05rem;
+        font-weight: 760;
+        margin-bottom: 1.2rem;
+    }
+    .thought-close { color: var(--text-muted); font-size: 1.4rem; font-weight: 400; }
+    .thought-block {
+        border-top: 1px solid var(--border);
+        padding: 1rem 0 1.05rem 0;
+    }
+    .thought-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-body);
+        font-size: 0.95rem;
+        font-weight: 760;
+        margin-bottom: 0.6rem;
+    }
+    .thought-title span {
+        color: var(--text-muted);
+        font-weight: 650;
+    }
+    .thought-block ul {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+    .thought-block li { margin-bottom: 0.48rem; }
     .hero-panel {
-        border: 1px solid #e6e8ef;
+        border: 1px solid var(--border);
         border-radius: 14px;
         padding: 1.15rem 1.25rem;
         background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
@@ -42,11 +433,11 @@ st.markdown(
         font-size: 2.05rem;
         line-height: 1.15;
         font-weight: 760;
-        color: #182032;
+        color: var(--text-title);
         margin-bottom: 0.35rem;
     }
     .hero-subtitle {
-        color: #667085;
+        color: var(--text-muted);
         font-size: 0.98rem;
         margin-bottom: 0.85rem;
     }
@@ -57,30 +448,30 @@ st.markdown(
         margin-top: 0.75rem;
     }
     .stat-pill {
-        border: 1px solid #edf0f5;
+        border: 1px solid var(--border-soft);
         border-radius: 10px;
         padding: 0.65rem 0.75rem;
         background: #ffffff;
     }
-    .stat-label { color: #667085; font-size: 0.76rem; }
-    .stat-value { color: #1d2939; font-size: 1rem; font-weight: 700; margin-top: 0.1rem; }
+    .stat-label { color: var(--text-muted); font-size: 0.76rem; }
+    .stat-value { color: var(--text-body); font-size: 1rem; font-weight: 700; margin-top: 0.1rem; }
     .section-label {
-        color: #475467;
+        color: var(--text-soft);
         font-size: 0.84rem;
         font-weight: 650;
         margin: 0.75rem 0 0.35rem 0;
     }
     .repo-card {
-        border: 1px solid #e6e8ef;
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 0.95rem 1rem;
         margin: 0.65rem 0;
         background: #ffffff;
     }
     .repo-title { font-size: 1.05rem; font-weight: 750; margin-bottom: 0.25rem; }
-    .repo-desc { color: #475467; font-size: 0.91rem; min-height: 1.25rem; }
+    .repo-desc { color: var(--text-soft); font-size: 0.91rem; min-height: 1.25rem; }
     .repo-meta {
-        color: #667085;
+        color: var(--text-muted);
         display: flex;
         flex-wrap: wrap;
         gap: 0.45rem;
@@ -88,41 +479,243 @@ st.markdown(
         font-size: 0.82rem;
     }
     .repo-chip {
-        border: 1px solid #edf0f5;
+        border: 1px solid var(--border-soft);
         border-radius: 999px;
-        background: #f8fafc;
+        background: var(--soft-bg);
         padding: 0.18rem 0.55rem;
     }
+    .compare-card {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: #ffffff;
+        overflow: hidden;
+        margin: 0.85rem 0 1rem 0;
+        box-shadow: 0 2px 8px rgba(24, 32, 50, 0.04);
+    }
+    .compare-card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.95rem 1rem 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+    .compare-card-title {
+        color: var(--text-title);
+        font-size: 1.05rem;
+        line-height: 1.35;
+        font-weight: 760;
+    }
+    .compare-card-subtitle {
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        line-height: 1.4;
+        margin-top: 0.18rem;
+    }
+    .compare-card-count {
+        border: 1px solid var(--border-soft);
+        border-radius: 999px;
+        background: #ffffff;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        font-weight: 650;
+        padding: 0.22rem 0.6rem;
+        white-space: nowrap;
+    }
+    .compare-table-wrap {
+        overflow-x: auto;
+        width: 100%;
+    }
+    .compare-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .compare-table th,
+    .compare-table td {
+        padding: 0.8rem 0.9rem;
+        border-bottom: 1px solid var(--border-soft);
+        border-right: 1px solid var(--border-soft);
+        vertical-align: top;
+        text-align: left;
+    }
+    .compare-table th:last-child,
+    .compare-table td:last-child {
+        border-right: 0;
+    }
+    .compare-table tr:last-child td {
+        border-bottom: 0;
+    }
+    .compare-table th {
+        background: #ffffff;
+        color: var(--text-title);
+        font-size: 0.88rem;
+        font-weight: 760;
+    }
+    .compare-dimension {
+        width: 9rem;
+        min-width: 9rem;
+        color: var(--text-soft);
+        background: #fbfbfa;
+        font-size: 0.84rem;
+        font-weight: 720;
+    }
+    .compare-repo-name {
+        color: var(--text-title);
+        font-size: 0.95rem;
+        font-weight: 760;
+        line-height: 1.3;
+    }
+    .compare-repo-desc {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        line-height: 1.35;
+        margin-top: 0.22rem;
+        max-width: 18rem;
+    }
+    .compare-cell {
+        color: var(--text-body);
+        font-size: 0.88rem;
+        line-height: 1.45;
+    }
+    .compare-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.45rem;
+    }
+    .compare-chip {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--border-soft);
+        border-radius: 999px;
+        background: var(--soft-bg);
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        line-height: 1.2;
+        padding: 0.16rem 0.5rem;
+        white-space: nowrap;
+    }
+    .compare-score {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 3.4rem;
+        border-radius: 999px;
+        background: #050505;
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 760;
+        padding: 0.22rem 0.52rem;
+    }
+    .compare-recommendation {
+        border-top: 1px solid var(--border);
+        padding: 0.8rem 1rem 0.95rem 1rem;
+        background: #ffffff;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+    .compare-recommendation b {
+        color: var(--text-body);
+    }
     .answer-summary {
-        border-left: 3px solid #2f6fed;
-        background: #f7faff;
+        border-left: 3px solid var(--primary);
+        background: var(--primary-soft);
         padding: 0.8rem 0.95rem;
         border-radius: 10px;
         margin: 0.35rem 0;
     }
-    .muted { color: #667085; font-size: 0.9rem; }
+    .muted { color: var(--text-muted); font-size: 0.9rem; }
     div[data-testid="stMetric"] {
         background: #ffffff;
-        border: 1px solid #e6e8ef;
+        border: 1px solid var(--border);
         padding: 0.7rem;
         border-radius: 10px;
     }
     div[data-testid="stChatMessage"] {
-        border-radius: 12px;
+        border-radius: 18px;
+        background: transparent;
+        padding: 0.2rem 0;
     }
     .stButton > button {
-        border-radius: 9px;
+        border-radius: 999px;
         min-height: 2.35rem;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--text-body);
+        font-weight: 680;
+        box-shadow: none;
+    }
+    .stButton > button:hover {
+        border-color: var(--border);
+        background: var(--soft-bg);
+        color: #111111;
+    }
+    button[data-testid="baseButton-primary"] {
+        background: #050505 !important;
+        border-color: #050505 !important;
+        color: #ffffff !important;
+    }
+    input, textarea {
+        border-radius: 12px !important;
+    }
+    div[data-baseweb="input"] {
+        border-radius: 12px;
+    }
+    div[data-testid="stAlert"] {
+        border-radius: 14px;
+        border: 1px solid var(--border);
+    }
+    @media (max-width: 1180px) {
+        .thought-panel { display: none; }
+        .chat-home { margin-top: 8vh; }
     }
     @media (max-width: 900px) {
         .main .block-container { padding-left: 1rem; padding-right: 1rem; }
         .stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .hero-title { font-size: 1.65rem; }
+        .chat-title { font-size: 2.25rem; }
+        .chat-logo-row .brand-mark { width: 46px; height: 46px; }
+        .top-bar { align-items: flex-start; gap: 0.6rem; }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+
+APP_MARK_SVG = """
+<svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true">
+  <path d="M39 8L27.8 29.4L9 40L20.2 18.6L39 8Z" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linejoin="round"/>
+  <path d="M12 26C12 16.6 19.6 9 29 9C31.8 9 34.4 9.7 36.7 10.9" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M36 22C36 31.4 28.4 39 19 39C16.2 39 13.6 38.3 11.3 37.1" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/>
+</svg>
+"""
+
+PAGE_OPTIONS = ["项目搜索", "智能聊天", "AI 问答", "项目分析", "项目对比", "我的收藏", "每日推荐", "数据概览"]
+NAV_LABELS = {
+    "项目搜索": "⌕  Search",
+    "智能聊天": "✎  Chat",
+    "AI 问答": "◌  Ask",
+    "项目分析": "◇  Analyze",
+    "项目对比": "⇄  Compare",
+    "我的收藏": "☆  Library",
+    "每日推荐": "◈  Daily",
+    "数据概览": "▦  Overview",
+}
+PAGE_CONTEXT = {
+    "项目搜索": "Search open-source repositories",
+    "智能聊天": "Chat with GitHub intelligence",
+    "AI 问答": "Ask about current repository",
+    "项目分析": "Analyze repository structure",
+    "项目对比": "Compare repositories",
+    "我的收藏": "Saved knowledge base",
+    "每日推荐": "Daily GitHub radar",
+    "数据概览": "Workspace overview",
+}
 
 
 def init_state() -> None:
@@ -151,6 +744,7 @@ def init_state() -> None:
 def main() -> None:
     init_state()
     page = render_sidebar()
+    render_top_bar(page)
 
     if page == "智能聊天":
         render_chat()
@@ -171,12 +765,42 @@ def main() -> None:
 
 
 def render_sidebar() -> str:
-    st.sidebar.title("AI GitHub Agent")
+    active_page = st.session_state.get("active_page", "智能聊天")
+    if active_page not in PAGE_OPTIONS:
+        active_page = "智能聊天"
+
+    st.sidebar.markdown(
+        f"""
+        <div class="sidebar-brand">
+            <div class="brand-lockup">
+                <div class="brand-mark">{APP_MARK_SVG}</div>
+                <div class="brand-text">AI GitHub Agent</div>
+            </div>
+            <div class="collapse-mark">«</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     page = st.sidebar.radio(
         "导航",
-        ["智能聊天", "数据概览", "项目搜索", "项目分析", "AI 问答", "项目对比", "我的收藏", "每日推荐"],
+        PAGE_OPTIONS,
+        index=PAGE_OPTIONS.index(active_page),
+        format_func=lambda item: NAV_LABELS.get(item, item),
+        key="active_page",
+        label_visibility="collapsed",
     )
-    st.sidebar.divider()
+
+    st.sidebar.markdown('<div class="side-section">Projects</div>', unsafe_allow_html=True)
+    st.sidebar.button("+  New Project", use_container_width=True, on_click=start_new_project)
+
+    st.sidebar.markdown('<div class="side-section">History</div>', unsafe_allow_html=True)
+    history_label = st.session_state.last_user_message or "No recent request"
+    st.sidebar.markdown(
+        f'<div class="side-history-item">{html.escape(history_label[:42])}</div>',
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown('<div class="side-muted">See all</div>', unsafe_allow_html=True)
 
     provider_labels = {
         name: meta["label"] for name, meta in config.LLM_PROVIDERS.items()
@@ -201,28 +825,114 @@ def render_sidebar() -> str:
     st.sidebar.write(f"GitHub Token: {'已配置' if config.GITHUB_TOKEN else '未配置'}")
     if not status.get(provider):
         st.sidebar.warning("当前 LLM 未配置 API key，应用会使用规则分析兜底。")
+    st.sidebar.markdown(
+        """
+        <div class="account-pill">
+            <span class="account-avatar">JS</span>
+            <span>Local Workspace</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     return page
 
 
-def render_chat() -> None:
-    stats = st.session_state.kb.get_statistics()
+def start_new_project() -> None:
+    st.session_state.current_repo = None
+    st.session_state.analysis = None
+    st.session_state.active_page = "项目分析"
+
+
+def render_top_bar(page: str) -> None:
+    context = PAGE_CONTEXT.get(page, page)
+    private_state = "Private" if config.GITHUB_TOKEN else "Public"
     st.markdown(
         f"""
-        <div class="hero-panel">
-            <div class="hero-title">AI GitHub Agent</div>
-            <div class="hero-subtitle">用一句话完成开源项目搜索、对比、介绍和学习规划。</div>
-            <div class="stat-strip">
-                <div class="stat-pill"><div class="stat-label">收藏项目</div><div class="stat-value">{stats["favorites_count"]}</div></div>
-                <div class="stat-pill"><div class="stat-label">学习记录</div><div class="stat-value">{stats["learning_records"]}</div></div>
-                <div class="stat-pill"><div class="stat-label">问答记录</div><div class="stat-value">{stats["qa_count"]}</div></div>
-                <div class="stat-pill"><div class="stat-label">当前项目</div><div class="stat-value">{(st.session_state.current_repo or {}).get("full_name", "未选择")}</div></div>
+        <div class="top-bar">
+            <div class="top-context">{html.escape(context)}</div>
+            <div class="top-actions">
+                <span class="top-pill">◇ Imagine</span>
+                <span class="top-pill secondary">◌ {private_state}</span>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="section-label">常用任务</div>', unsafe_allow_html=True)
+
+def render_chat() -> None:
+    stats = st.session_state.kb.get_statistics()
+    main_col, thought_col = st.columns([1.85, 0.9], gap="large")
+
+    with main_col:
+        if st.session_state.chat_messages or st.session_state.search_results:
+            render_chat_thread()
+        else:
+            render_chat_landing(stats)
+
+    with thought_col:
+        render_thoughts_panel(stats)
+
+
+def render_chat_landing(stats: Dict[str, Any]) -> None:
+    current_repo = (st.session_state.current_repo or {}).get("full_name", "未选择")
+    st.markdown(
+        f"""
+        <div class="chat-home">
+            <div class="chat-logo-row">
+                <div class="brand-mark">{APP_MARK_SVG}</div>
+                <div class="chat-title">Agent</div>
+            </div>
+            <div class="chat-subtitle">Search, analyze, compare and learn from GitHub projects.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_prompt_composer("home", "How can I help with GitHub projects today?")
+    render_quick_actions("home")
+    st.markdown(
+        f"""
+        <div class="connect-card">
+            <div>
+                <div class="connect-title">GitHub workspace ready</div>
+                <div class="connect-copy">收藏 {stats["favorites_count"]} · 学习 {stats["learning_records"]} · 当前项目 {html.escape(current_repo)}</div>
+            </div>
+            <div class="connect-action">Analyze</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_chat_thread() -> None:
+    st.markdown('<div class="thread-shell">', unsafe_allow_html=True)
+    toolbar_left, toolbar_mid, toolbar_right = st.columns([4.5, 0.8, 0.8])
+    toolbar_left.markdown('<div class="muted">Thought for current GitHub request</div>', unsafe_allow_html=True)
+    if toolbar_mid.button("清空", key="thread_clear", use_container_width=True):
+        st.session_state.chat_messages = []
+        st.session_state.chat_memory = {}
+        st.session_state.last_user_message = ""
+        st.session_state.last_answer = ""
+        st.session_state.search_results = []
+        st.rerun()
+    if toolbar_right.button("重试", key="thread_retry", use_container_width=True) and st.session_state.last_user_message:
+        submit_chat(st.session_state.last_user_message, regenerate=True)
+        st.rerun()
+
+    for message in st.session_state.chat_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"], unsafe_allow_html=message["role"] == "assistant")
+
+    render_chat_artifacts()
+    render_prompt_composer("thread", "Ask anything")
+
+    if st.session_state.last_answer:
+        with st.expander("复制最近回答"):
+            st.code(st.session_state.last_answer, language="markdown")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def render_quick_actions(key_prefix: str) -> None:
     quick_prompts = [
         ("找 Agent 项目", "帮我找适合学习 AI Agent 的 Python 项目"),
         ("项目对比", "对比 LangGraph、CrewAI 和 AutoGen"),
@@ -232,36 +942,71 @@ def render_chat() -> None:
     cols = st.columns(4)
     for idx, (label, prompt) in enumerate(quick_prompts):
         with cols[idx]:
-            if st.button(label, use_container_width=True, help=prompt):
+            if st.button(label, key=f"{key_prefix}_quick_{idx}", use_container_width=True, help=prompt):
                 submit_chat(prompt)
                 st.rerun()
 
-    toolbar_left, toolbar_mid, toolbar_right = st.columns([0.9, 0.9, 4.2])
-    if toolbar_left.button("清空"):
-        st.session_state.chat_messages = []
-        st.session_state.chat_memory = {}
-        st.session_state.last_user_message = ""
-        st.session_state.last_answer = ""
-        st.rerun()
-    if toolbar_mid.button("重试") and st.session_state.last_user_message:
-        submit_chat(st.session_state.last_user_message, regenerate=True)
-        st.rerun()
-    toolbar_right.caption("也可以直接输入 GitHub URL、owner/repo、或“对比第 1 和第 3 个”。")
 
-    for message in st.session_state.chat_messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"], unsafe_allow_html=message["role"] == "assistant")
+def render_prompt_composer(key_prefix: str, placeholder: str) -> None:
+    with st.container(border=True):
+        with st.form(f"{key_prefix}_prompt_form", clear_on_submit=True):
+            prompt_col, mode_col, send_col = st.columns([5.8, 1.2, 0.6])
+            prompt = prompt_col.text_input("Prompt", placeholder=placeholder, label_visibility="collapsed")
+            mode = mode_col.selectbox("Mode", ["Auto", "Expert", "Scout"], label_visibility="collapsed")
+            submitted = send_col.form_submit_button("↑", type="primary", use_container_width=True)
 
-    user_input = st.chat_input("输入 GitHub 项目需求、对比问题或学习目标...")
-    if user_input:
-        submit_chat(user_input)
+    if submitted and prompt.strip():
+        message = prompt.strip()
+        if mode == "Expert":
+            message = f"请用专家视角分析：{message}"
+        elif mode == "Scout":
+            message = f"请优先搜索并推荐项目：{message}"
+        submit_chat(message)
         st.rerun()
 
-    render_chat_artifacts()
 
-    if st.session_state.last_answer:
-        with st.expander("复制最近回答"):
-            st.code(st.session_state.last_answer, language="markdown")
+def render_thoughts_panel(stats: Dict[str, Any]) -> None:
+    current_repo = (st.session_state.current_repo or {}).get("full_name") or "No repository selected"
+    last_request = st.session_state.last_user_message or "Waiting for a request"
+    search_count = len(st.session_state.search_results)
+    compare_count = len(st.session_state.compare_repos)
+    llm_state = "LLM ready" if st.session_state.llm.is_ready() else "Rules fallback active"
+    github_state = "Token configured" if config.GITHUB_TOKEN else "Public GitHub limit"
+    st.markdown(
+        f"""
+        <div class="thought-panel">
+            <div class="thought-header">
+                <span>Thoughts</span>
+                <span class="thought-close">×</span>
+            </div>
+            <div class="thought-block">
+                <div class="thought-title">◌ Thinking about your request</div>
+                <ul>
+                    <li>{html.escape(last_request[:96])}</li>
+                    <li>{html.escape(llm_state)}</li>
+                    <li>{html.escape(github_state)}</li>
+                </ul>
+            </div>
+            <div class="thought-block">
+                <div class="thought-title">⌕ Scanning GitHub</div>
+                <ul>
+                    <li>{search_count} recommended projects in the current result set.</li>
+                    <li>Current repository: {html.escape(current_repo)}</li>
+                    <li>{compare_count} projects are staged for comparison.</li>
+                </ul>
+            </div>
+            <div class="thought-block">
+                <div class="thought-title">◇ Preparing next action</div>
+                <ul>
+                    <li>Favorites: {stats["favorites_count"]}</li>
+                    <li>Learning records: {stats["learning_records"]}</li>
+                    <li>Questions answered: {stats["qa_count"]}</li>
+                </ul>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def submit_chat(message: str, regenerate: bool = False) -> None:
@@ -269,7 +1014,10 @@ def submit_chat(message: str, regenerate: bool = False) -> None:
         st.session_state.chat_messages.append({"role": "user", "content": message})
     st.session_state.last_user_message = message
     with st.spinner("AI GitHub Agent 正在搜索、分析和总结..."):
-        answer = handle_chat_message(message)
+        try:
+            answer = handle_chat_message(message)
+        except GitHubAPIError as exc:
+            answer = f"GitHub 数据获取失败：{exc}"
     st.session_state.last_answer = answer
     st.session_state.chat_messages.append({"role": "assistant", "content": answer})
 
@@ -341,7 +1089,8 @@ def chat_intro(routed: Dict[str, Any]) -> str:
     repo = resolve_single_repo(routed)
     if not repo:
         return "我没能识别到具体项目。请提供 GitHub URL 或 `owner/repo`，例如 `microsoft/autogen`。"
-    run_analysis(repo["full_name"], load_issues=False)
+    if not run_analysis(repo["full_name"], load_issues=False):
+        return "项目数据获取失败，请稍后重试。"
     analysis = st.session_state.analysis
     if not analysis:
         return "项目数据获取失败，请稍后重试。"
@@ -352,9 +1101,11 @@ def chat_intro(routed: Dict[str, Any]) -> str:
 def chat_learning(routed: Dict[str, Any]) -> str:
     repo = resolve_single_repo(routed)
     if repo:
-        run_analysis(repo["full_name"], load_issues=False)
+        if not run_analysis(repo["full_name"], load_issues=False):
+            return "项目数据获取失败，请稍后重试。"
     elif not st.session_state.analysis and st.session_state.chat_memory.get("current_repo"):
-        run_analysis(st.session_state.chat_memory["current_repo"], load_issues=False)
+        if not run_analysis(st.session_state.chat_memory["current_repo"], load_issues=False):
+            return "项目数据获取失败，请稍后重试。"
 
     analysis = st.session_state.analysis
     if not analysis:
@@ -370,8 +1121,9 @@ def chat_followup(routed: Dict[str, Any]) -> str:
         if len(repos) >= 2:
             return chat_compare({**routed, "repos": [repo["full_name"] for repo in repos]})
         if len(repos) == 1:
-            run_analysis(repos[0]["full_name"], load_issues=False)
-            return format_project_intro(st.session_state.analysis)
+            if run_analysis(repos[0]["full_name"], load_issues=False):
+                return format_project_intro(st.session_state.analysis)
+            return "项目数据获取失败，请稍后重试。"
     if "学习" in raw or "路线" in raw or "计划" in raw:
         return chat_learning(routed)
     if "新手" in raw or "简单" in raw or "更多" in raw:
@@ -436,8 +1188,12 @@ def render_search() -> None:
 
     if submitted and keyword.strip():
         with st.spinner("正在搜索 GitHub..."):
-            repos = st.session_state.github.search_repos(keyword, language=language, sort=sort, per_page=per_page)
-            st.session_state.search_results = repos
+            try:
+                repos = st.session_state.github.search_repos(keyword, language=language, sort=sort, per_page=per_page)
+            except GitHubAPIError as exc:
+                st.error(f"GitHub 搜索失败：{exc}")
+                return
+        st.session_state.search_results = repos
         st.success(f"找到 {len(st.session_state.search_results)} 个项目")
 
     if st.session_state.search_results:
@@ -491,24 +1247,34 @@ def render_analysis() -> None:
         show_analysis(st.session_state.analysis)
 
 
-def run_analysis(repo_input: str, load_issues: bool = False) -> None:
+def run_analysis(repo_input: str, load_issues: bool = False) -> bool:
     full_name = st.session_state.github.normalize_repo_name(repo_input)
     if not full_name:
         st.error("请输入正确格式，例如 langchain-ai/langgraph")
-        return
+        st.session_state.analysis = None
+        return False
 
     with st.spinner("正在获取仓库、README、目录结构和技术栈..."):
-        repo = st.session_state.github.get_repo(full_name)
-        if not repo:
-            st.error("无法获取仓库信息")
-            return
-        readme = st.session_state.github.get_readme(repo["full_name"])
-        structure = st.session_state.github.get_repo_structure(repo["full_name"])
-        languages = st.session_state.github.get_languages(repo["full_name"])
-        releases = st.session_state.github.get_releases(repo["full_name"])
-        topics = st.session_state.github.get_topics(repo["full_name"])
-        issues = st.session_state.github.get_issues(repo["full_name"]) if load_issues else []
-        prs = st.session_state.github.get_pull_requests(repo["full_name"]) if load_issues else []
+        try:
+            repo = st.session_state.github.get_repo(full_name)
+            if not repo:
+                st.error("无法获取仓库信息")
+                st.session_state.analysis = None
+                return False
+            readme = st.session_state.github.get_readme(repo["full_name"])
+            structure = st.session_state.github.get_repo_structure(
+                repo["full_name"],
+                branch=repo.get("default_branch"),
+            )
+            languages = st.session_state.github.get_languages(repo["full_name"])
+            releases = st.session_state.github.get_releases(repo["full_name"])
+            topics = st.session_state.github.get_topics(repo["full_name"])
+            issues = st.session_state.github.get_issues(repo["full_name"]) if load_issues else []
+            prs = st.session_state.github.get_pull_requests(repo["full_name"]) if load_issues else []
+        except GitHubAPIError as exc:
+            st.error(f"GitHub 数据获取失败：{exc}")
+            st.session_state.analysis = None
+            return False
 
         analyzer = st.session_state.analyzer
         tech_stack = analyzer.detect_tech_stack(repo, languages, structure, readme)
@@ -547,6 +1313,7 @@ def run_analysis(repo_input: str, load_issues: bool = False) -> None:
         "prs": prs,
     }
     st.session_state.kb.add_learning_record(repo["full_name"], "analyze", {"items": len(structure)})
+    return True
 
 
 def show_analysis(analysis: Dict[str, Any]) -> None:
@@ -672,27 +1439,21 @@ def render_compare() -> None:
     if st.button("开始对比", type="primary"):
         repos = []
         with st.spinner("正在获取项目数据..."):
-            for line in text.splitlines():
-                full_name = st.session_state.github.normalize_repo_name(line)
-                if full_name:
-                    repo = st.session_state.github.get_repo(full_name)
-                    if repo:
-                        repos.append(repo)
+            try:
+                for line in text.splitlines():
+                    full_name = st.session_state.github.normalize_repo_name(line)
+                    if full_name:
+                        repo = st.session_state.github.get_repo(full_name)
+                        if repo:
+                            repos.append(repo)
+            except GitHubAPIError as exc:
+                st.error(f"GitHub 数据获取失败：{exc}")
+                return
         st.session_state.compare_repos = repos
 
     repos = st.session_state.compare_repos
     if repos:
-        rows = []
-        for repo in repos:
-            rows.append({
-                "项目": repo.get("full_name"),
-                "项目定位": repo.get("description") or "无",
-                "技术栈": repo.get("language") or "Unknown",
-                "社区活跃度": f"{repo.get('stargazers_count', 0)} stars / {repo.get('forks_count', 0)} forks",
-                "学习难度": difficulty(repo),
-                "推荐指数": f"{st.session_state.analyzer.recommendation_score(repo)}/10",
-            })
-        st.dataframe(rows, use_container_width=True, hide_index=True)
+        st.markdown(format_compare_table(repos), unsafe_allow_html=True)
         if st.button("生成 AI 对比报告"):
             if not st.session_state.llm.is_ready():
                 st.warning("当前 LLM 未配置 API key。")
@@ -744,7 +1505,11 @@ def render_daily() -> None:
     )
     if st.button("获取推荐", type="primary"):
         with st.spinner("正在扫描 GitHub..."):
-            st.session_state.daily_repos = st.session_state.github.daily_recommendations(category)
+            try:
+                st.session_state.daily_repos = st.session_state.github.daily_recommendations(category)
+            except GitHubAPIError as exc:
+                st.error(f"GitHub 推荐获取失败：{exc}")
+                return
 
     repos = st.session_state.get("daily_repos", [])
     if repos:
@@ -803,31 +1568,27 @@ def render_chat_artifacts() -> None:
             c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
             with c1:
                 if c1.button("查看介绍", key=f"chat_intro_{idx}"):
-                    run_analysis(repo["full_name"], load_issues=False)
-                    answer = format_project_intro(st.session_state.analysis)
-                    st.session_state.chat_messages.append({"role": "assistant", "content": answer})
-                    st.session_state.last_answer = answer
-                    st.rerun()
+                    if run_analysis(repo["full_name"], load_issues=False):
+                        answer = format_project_intro(st.session_state.analysis)
+                        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
+                        st.session_state.last_answer = answer
+                        st.rerun()
             with c2:
                 if c2.button("加入对比", key=f"chat_compare_add_{idx}"):
                     add_compare_repo(repo)
                     st.toast("已加入对比")
             with c3:
                 if c3.button("学习计划", key=f"chat_plan_{idx}"):
-                    run_analysis(repo["full_name"], load_issues=False)
-                    answer = format_learning_plan(st.session_state.analysis, "2 周", "普通开发者")
-                    st.session_state.chat_messages.append({"role": "assistant", "content": answer})
-                    st.session_state.last_answer = answer
-                    st.rerun()
+                    if run_analysis(repo["full_name"], load_issues=False):
+                        answer = format_learning_plan(st.session_state.analysis, "2 周", "普通开发者")
+                        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
+                        st.session_state.last_answer = answer
+                        st.rerun()
             c4.caption(rule_recommendation(repo, score))
 
     if st.session_state.get("compare_repos"):
         with st.expander("当前对比列表"):
-            st.dataframe(
-                [{"项目": repo.get("full_name"), "Stars": repo.get("stargazers_count", 0), "语言": repo.get("language") or "Unknown"} for repo in st.session_state.compare_repos],
-                use_container_width=True,
-                hide_index=True,
-            )
+            st.markdown(format_compare_table(st.session_state.compare_repos), unsafe_allow_html=True)
 
 
 def rank_recommendations(repos: List[Dict[str, Any]], user_need: str, filters: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -947,30 +1708,82 @@ def add_compare_repo(repo: Dict[str, Any]) -> None:
 
 
 def format_compare_table(repos: List[Dict[str, Any]]) -> str:
-    headers = ["维度"] + [repo.get("full_name", "") for repo in repos]
-    rows = [
-        ["项目定位"] + [repo.get("description") or "无" for repo in repos],
-        ["技术栈"] + [repo.get("language") or "Unknown" for repo in repos],
-        ["社区热度"] + [f"{repo.get('stargazers_count', 0)} stars / {repo.get('forks_count', 0)} forks" for repo in repos],
-        ["维护活跃度"] + [activity_level(repo) for repo in repos],
-        ["文档质量"] + [doc_quality(repo) for repo in repos],
-        ["上手难度"] + [difficulty(repo) for repo in repos],
-        ["License"] + [(repo.get("license") or {}).get("name", "Unknown") for repo in repos],
-        ["风险点"] + [risk_summary(repo) for repo in repos],
-        ["推荐指数"] + [f"{st.session_state.analyzer.recommendation_score(repo)}/10" for repo in repos],
-    ]
-    lines = ["总体结论：下面是基于 GitHub 公开元数据的初步对比，License 和商业合规仍建议人工复核。", ""]
-    lines.append("| " + " | ".join(headers) + " |")
-    lines.append("| " + " | ".join(["---"] * len(headers)) + " |")
-    for row in rows:
-        lines.append("| " + " | ".join(str(cell).replace("|", "/") for cell in row) + " |")
-    lines.append("\n推荐选择：")
+    if not repos:
+        return ""
+
+    rows = compare_rows(repos)
+    header_cells = ['<th class="compare-dimension">维度</th>']
+    for repo in repos:
+        repo_name = html.escape(repo.get("full_name") or "Unknown")
+        repo_url = html.escape(repo.get("html_url") or "#")
+        repo_desc = html.escape(repo.get("description") or "暂无描述")
+        language = html.escape(repo.get("language") or "Unknown")
+        stars = html.escape(format_count(repo.get("stargazers_count", 0)))
+        forks = html.escape(format_count(repo.get("forks_count", 0)))
+        updated = html.escape((repo.get("pushed_at") or repo.get("updated_at") or "")[:10] or "未知")
+        header_cells.append(
+            f"""
+            <th>
+                <div class="compare-repo-name"><a href="{repo_url}" target="_blank">{repo_name}</a></div>
+                <div class="compare-repo-desc">{repo_desc}</div>
+                <div class="compare-chip-row">
+                    <span class="compare-chip">{language}</span>
+                    <span class="compare-chip">Stars {stars}</span>
+                    <span class="compare-chip">Forks {forks}</span>
+                    <span class="compare-chip">更新 {updated}</span>
+                </div>
+            </th>
+            """
+        )
+
+    body_rows = []
+    for label, values in rows:
+        cells = [f'<td class="compare-dimension">{html.escape(label)}</td>']
+        for value in values:
+            value_text = html.escape(str(value))
+            if label == "推荐指数":
+                value_text = f'<span class="compare-score">{value_text}</span>'
+            cells.append(f'<td><div class="compare-cell">{value_text}</div></td>')
+        body_rows.append("<tr>" + "".join(cells) + "</tr>")
+
     easiest = min(repos, key=lambda repo: (repo.get("size", 0) or 0))
     hottest = max(repos, key=lambda repo: repo.get("stargazers_count", 0) or 0)
-    lines.append(f"- 如果你是新手，优先看 `{easiest.get('full_name')}`。")
-    lines.append(f"- 如果你看重社区热度，优先评估 `{hottest.get('full_name')}`。")
-    lines.append("- 如果你要生产使用，请继续核实 Release、Issue 响应、License 和依赖生态。")
-    return "\n".join(lines)
+    return f"""
+<div class="compare-card">
+    <div class="compare-card-head">
+        <div>
+            <div class="compare-card-title">项目对比表格</div>
+            <div class="compare-card-subtitle">基于 GitHub 公开元数据生成，适合做学习选型和初筛。</div>
+        </div>
+        <div class="compare-card-count">{len(repos)} 个项目</div>
+    </div>
+    <div class="compare-table-wrap">
+        <table class="compare-table">
+            <thead><tr>{"".join(header_cells)}</tr></thead>
+            <tbody>{"".join(body_rows)}</tbody>
+        </table>
+    </div>
+    <div class="compare-recommendation">
+        <b>推荐选择：</b>新手优先看 <b>{html.escape(easiest.get("full_name") or "")}</b>；
+        看重社区热度优先评估 <b>{html.escape(hottest.get("full_name") or "")}</b>。
+        生产使用前继续复核 Release、Issue 响应、License 和依赖生态。
+    </div>
+</div>
+"""
+
+
+def compare_rows(repos: List[Dict[str, Any]]) -> List[tuple[str, List[str]]]:
+    return [
+        ("项目定位", [repo.get("description") or "无" for repo in repos]),
+        ("技术栈", [repo.get("language") or "Unknown" for repo in repos]),
+        ("社区热度", [f"{format_count(repo.get('stargazers_count', 0))} stars / {format_count(repo.get('forks_count', 0))} forks" for repo in repos]),
+        ("维护活跃度", [activity_level(repo) for repo in repos]),
+        ("文档质量", [doc_quality(repo) for repo in repos]),
+        ("上手难度", [difficulty(repo) for repo in repos]),
+        ("License", [(repo.get("license") or {}).get("name", "Unknown") for repo in repos]),
+        ("风险点", [risk_summary(repo) for repo in repos]),
+        ("推荐指数", [f"{Analyzer.recommendation_score(repo)}/10" for repo in repos]),
+    ]
 
 
 def format_project_intro(analysis: Dict[str, Any]) -> str:

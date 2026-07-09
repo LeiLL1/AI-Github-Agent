@@ -17,6 +17,11 @@ for directory in (DATA_DIR, CACHE_DIR, KNOWLEDGE_DIR, LOG_DIR):
 
 load_dotenv(BASE_DIR / ".env")
 
+
+def _env_bool(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
 DB_PATH = DATA_DIR / "knowledge_base.db"
 
 GITHUB_API_BASE = os.getenv("GITHUB_API_BASE", "https://api.github.com").rstrip("/")
@@ -45,6 +50,10 @@ DEFAULT_LLM_PROVIDER = os.getenv("DEFAULT_LLM_PROVIDER", "deepseek").strip().low
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", DEEPSEEK_MODEL).strip()
 
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "30"))
+GITHUB_REQUEST_RETRIES = int(os.getenv("GITHUB_REQUEST_RETRIES", "2"))
+GITHUB_WAIT_ON_RATE_LIMIT = _env_bool("GITHUB_WAIT_ON_RATE_LIMIT", "true")
+GITHUB_RATE_LIMIT_MAX_WAIT_SECONDS = int(os.getenv("GITHUB_RATE_LIMIT_MAX_WAIT_SECONDS", "3900"))
+GITHUB_RATE_LIMIT_BUFFER_SECONDS = int(os.getenv("GITHUB_RATE_LIMIT_BUFFER_SECONDS", "5"))
 SEARCH_PER_PAGE = int(os.getenv("SEARCH_PER_PAGE", "10"))
 MAX_STRUCTURE_ITEMS = int(os.getenv("MAX_STRUCTURE_ITEMS", "160"))
 
