@@ -1,6 +1,6 @@
 # AI GitHub Agent 设计规范
 
-本规范用于统一当前应用的 Grok Web 风格：轻量、克制、以对话和信息扫描为核心。整体视觉以白色和浅灰为底，使用细边框建立层级，主色只用于关键行动、焦点和重点提示。
+本规范用于统一当前应用的 GPT Web 对话风格：单列消息流、底部固定输入框、轻量侧边栏，以及与每轮回答绑定的项目推荐卡片。整体视觉以白色和浅灰为底，使用细边框建立层级，深色只用于关键行动、评分和焦点状态。
 
 ## 1. 配色
 
@@ -8,30 +8,30 @@
 
 | 类型 | 用途 | 色值 |
 | --- | --- | --- |
-| 主色 | 主按钮、重点链接、左侧强调线、焦点状态 | `#2F6FED` |
-| 主色 Hover | 主按钮 hover、链接 hover | `#255EDB` |
-| 主色浅底 | AI 回答摘要、选中态浅背景 | `#F7FAFF` |
-| 页面背景 | 主内容区背景、轻量页面底色 | `#F7F9FC` |
+| 主色 | 主按钮、评分、关键行动 | `#111111` |
+| 主色 Hover | 主按钮 hover、链接 hover | `#000000` |
+| 主色浅底 | 用户消息、选中态浅背景 | `#F4F4F4` |
+| 页面背景 | 主内容区背景 | `#FFFFFF` |
 | 主卡片背景 | 卡片、指标、输入面板 | `#FFFFFF` |
-| 次级浅底 | Chip、轻量标签、弱化工具条 | `#F8FAFC` |
+| 次级浅底 | Chip、轻量标签、弱化工具条 | `#F7F7F7` |
 
 ### 文字色
 
 | 类型 | 用途 | 色值 |
 | --- | --- | --- |
-| 标题文字 | 页面标题、Hero 标题、核心名称 | `#182032` |
-| 正文文字 | 正文、指标值、主要说明 | `#1D2939` |
-| 次级文字 | 描述、说明、卡片摘要 | `#475467` |
-| 弱提示文字 | Caption、元信息、时间、辅助说明 | `#667085` |
+| 标题文字 | 页面标题、Hero 标题、核心名称 | `#0D0D0D` |
+| 正文文字 | 正文、指标值、主要说明 | `#171717` |
+| 次级文字 | 描述、说明、卡片摘要 | `#424242` |
+| 弱提示文字 | Caption、元信息、时间、辅助说明 | `#6B6B6B` |
 | 反白文字 | 深色主按钮文字 | `#FFFFFF` |
 
 ### 边框和状态色
 
 | 类型 | 用途 | 色值 |
 | --- | --- | --- |
-| 默认边框 | 卡片、Metric、Hero 面板 | `#E6E8EF` |
-| 弱边框 | Chip、轻量分隔 | `#EDF0F5` |
-| 聚焦描边 | 输入框、按钮 focus ring | `rgba(47, 111, 237, 0.18)` |
+| 默认边框 | 卡片、Metric、Hero 面板 | `#E5E5E5` |
+| 弱边框 | Chip、轻量分隔 | `#EDEDED` |
+| 聚焦描边 | 输入框、按钮 focus ring | `rgba(0, 0, 0, 0.12)` |
 | 成功色 | 成功提示、收藏完成 | `#12B76A` |
 | 警告色 | 限流等待、配置提醒 | `#F79009` |
 | 错误色 | GitHub/LLM 错误提示 | `#D92D20` |
@@ -111,12 +111,12 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 | --- | --- |
 | 高度 | 最小高度 `2.35rem` / 约 `38px` |
 | 圆角 | `9px` |
-| 主按钮背景 | `#2F6FED` |
+| 主按钮背景 | `#111111` |
 | 主按钮文字 | `#FFFFFF` |
 | 次级按钮背景 | `#FFFFFF` |
-| 次级按钮边框 | `1px solid #E6E8EF` |
-| Hover | 背景轻微加深或使用 `#F8FAFC` |
-| Focus | `0 0 0 3px rgba(47, 111, 237, 0.18)` |
+| 次级按钮边框 | `1px solid #E5E5E5` |
+| Hover | 背景轻微加深或使用 `#F7F7F7` |
+| Focus | `0 0 0 3px rgba(0, 0, 0, 0.12)` |
 
 规则：
 
@@ -131,7 +131,7 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 | 普通卡片 | `#FFFFFF` | `1px solid #E6E8EF` | `12px` | 无 |
 | 指标卡片 | `#FFFFFF` | `1px solid #E6E8EF` | `10px` | 无 |
 | Chip / 标签 | `#F8FAFC` | `1px solid #EDF0F5` | `999px` | 无 |
-| Answer Summary | `#F7FAFF` | 左侧 `3px solid #2F6FED` | `10px` | 无 |
+| Answer Summary | `#F4F4F4` | 无 | `12px` | 无 |
 | Hero 面板 | `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 100%)` | `1px solid #E6E8EF` | `14px` | 无 |
 
 规则：
@@ -144,11 +144,11 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
 | 属性 | 规则 |
 | --- | --- |
-| 背景 | `#FFFFFF` 或透明叠加页面背景 |
-| 边框 | 内容区分隔使用 `1px solid #E6E8EF` |
-| 文字 | 默认 `#475467`，选中 `#182032` |
-| 选中态背景 | `#F8FAFC` |
-| 选中态强调 | 可使用 `#2F6FED` 作为左侧细线或图标色 |
+| 背景 | `#F9F9F9` |
+| 边框 | 内容区分隔使用 `1px solid #E5E5E5` |
+| 文字 | 默认 `#424242`，选中 `#0D0D0D` |
+| 选中态背景 | `#ECECEC` |
+| 选中态强调 | 使用深色文字和浅灰背景 |
 | 圆角 | 导航项 `9px` 到 `10px` |
 | 间距 | 导航项内边距建议 `8px 12px` |
 
@@ -163,12 +163,12 @@ font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 | 属性 | 规则 |
 | --- | --- |
 | 输入框背景 | `#FFFFFF` |
-| 输入框边框 | `1px solid #E6E8EF` |
-| 输入框圆角 | `10px` 到 `12px` |
+| 输入框边框 | `1px solid #D9D9D9` |
+| 输入框圆角 | `24px` |
 | 输入框内边距 | `10px 12px` |
-| Placeholder | `#667085` |
-| 聊天气泡圆角 | `12px` |
-| 回答摘要背景 | `#F7FAFF` |
+| Placeholder | `#6B6B6B` |
+| 聊天气泡圆角 | `18px` |
+| 回答摘要背景 | `#F4F4F4` |
 
 规则：
 

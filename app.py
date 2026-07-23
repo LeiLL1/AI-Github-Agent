@@ -29,19 +29,19 @@ st.markdown(
     """
     <style>
     :root {
-        --primary: #2f6fed;
-        --primary-hover: #255edb;
-        --primary-soft: #f7faff;
-        --page-bg: #fbfbfa;
+        --primary: #111111;
+        --primary-hover: #000000;
+        --primary-soft: #f4f4f4;
+        --page-bg: #ffffff;
         --panel-bg: #ffffff;
-        --soft-bg: #f8fafc;
-        --nav-active: #f1f1f0;
-        --text-title: #182032;
-        --text-body: #1d2939;
-        --text-muted: #667085;
-        --text-soft: #475467;
-        --border: #e6e8ef;
-        --border-soft: #edf0f5;
+        --soft-bg: #f7f7f7;
+        --nav-active: #ececec;
+        --text-title: #0d0d0d;
+        --text-body: #171717;
+        --text-muted: #6b6b6b;
+        --text-soft: #424242;
+        --border: #e5e5e5;
+        --border-soft: #ededed;
         --danger: #d92d20;
     }
     html, body, [class*="css"] {
@@ -54,7 +54,7 @@ st.markdown(
     [data-testid="stToolbar"] { display: none; }
     [data-testid="stSidebarNav"] { display: none; }
     [data-testid="stSidebar"] {
-        background: #ffffff;
+        background: #f9f9f9;
         border-right: 1px solid var(--border);
         min-width: 274px;
     }
@@ -681,6 +681,196 @@ st.markdown(
         .chat-logo-row .brand-mark { width: 46px; height: 46px; }
         .top-bar { align-items: flex-start; gap: 0.6rem; }
     }
+
+    /* GPT-style chat experience */
+    .chat-home {
+        max-width: 760px;
+        margin: 14vh auto 0 auto;
+        text-align: center;
+    }
+    .chat-logo-row {
+        margin-bottom: 1rem;
+    }
+    .chat-logo-row .brand-mark {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        background: #111111;
+        color: #ffffff;
+        border-color: #111111;
+    }
+    .chat-title {
+        font-size: 2rem;
+        line-height: 1.2;
+        font-weight: 720;
+        color: #0d0d0d;
+    }
+    .chat-subtitle {
+        max-width: 600px;
+        margin: 0.65rem auto 1.6rem auto;
+        color: #6b6b6b;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .chat-status-line {
+        margin-top: 1rem;
+        color: #8a8a8a;
+        font-size: 0.82rem;
+        text-align: center;
+    }
+    .thread-heading {
+        padding: 0.2rem 0 1rem 0;
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 0.25rem;
+    }
+    .thread-heading-title {
+        color: var(--text-title);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .thread-heading-copy {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        margin-top: 0.18rem;
+    }
+    div[data-testid="stChatMessage"] {
+        border-radius: 0;
+        background: transparent;
+        padding: 1.05rem 0;
+        gap: 0.7rem;
+    }
+    div[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
+        color: var(--text-body);
+        line-height: 1.65;
+    }
+    div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+    div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageAvatarUser"] {
+        display: none;
+    }
+    div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+        flex: 0 1 auto;
+        max-width: 78%;
+        background: #f4f4f4;
+        border-radius: 18px;
+        padding: 0.62rem 0.9rem;
+    }
+    div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageAvatarAssistant"],
+    div[data-testid="stChatMessage"] [data-testid="stChatMessageAvatarCustom"] {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        border-radius: 9px;
+        background: #111111;
+        color: #ffffff;
+    }
+    [data-testid="stBottomBlockContainer"] {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0.75rem 1rem 1rem 1rem;
+        background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 30%);
+    }
+    [data-testid="stChatInput"] > div {
+        border: 1px solid #d9d9d9;
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+    [data-testid="stChatInput"] textarea {
+        min-height: 3.25rem;
+        padding-top: 0.85rem;
+        color: var(--text-body);
+    }
+    .recommendation-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin: 1rem 0 0.45rem 0;
+        color: var(--text-title);
+        font-size: 0.92rem;
+        font-weight: 720;
+    }
+    .recommendation-count {
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+    .repo-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0.95rem 1rem;
+        margin: 0.65rem 0 0.45rem 0;
+        background: #ffffff;
+        transition: border-color 140ms ease, background 140ms ease;
+    }
+    .repo-card-link,
+    .repo-card-link:hover {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+    }
+    .repo-card:hover {
+        border-color: #cfcfcf;
+        background: #fdfdfd;
+    }
+    .repo-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+    .repo-rank {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.45rem;
+        height: 1.45rem;
+        border-radius: 999px;
+        background: #111111;
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .repo-open-mark {
+        margin-left: auto;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .repo-tech-label {
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 650;
+        margin-top: 0.65rem;
+    }
+    .repo-score {
+        border-radius: 999px;
+        background: #111111;
+        color: #ffffff;
+        padding: 0.18rem 0.58rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+    .repo-reason {
+        color: var(--text-muted);
+        font-size: 0.84rem;
+        line-height: 1.5;
+        margin-top: 0.58rem;
+    }
+    .stButton > button {
+        border-radius: 12px;
+    }
+    @media (max-width: 900px) {
+        .chat-home { margin-top: 8vh; }
+        .chat-title { font-size: 1.65rem; }
+        [data-testid="stBottomBlockContainer"] { padding-left: 0.75rem; padding-right: 0.75rem; }
+        div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+            max-width: 90%;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -695,7 +885,7 @@ APP_MARK_SVG = """
 </svg>
 """
 
-PAGE_OPTIONS = ["项目搜索", "智能聊天", "AI 问答", "项目分析", "项目对比", "我的收藏", "每日推荐", "数据概览"]
+PAGE_OPTIONS = ["智能聊天", "项目搜索", "AI 问答", "项目分析", "项目对比", "我的收藏", "每日推荐", "数据概览"]
 NAV_LABELS = {
     "项目搜索": "⌕  Search",
     "智能聊天": "✎  Chat",
@@ -708,7 +898,7 @@ NAV_LABELS = {
 }
 PAGE_CONTEXT = {
     "项目搜索": "Search open-source repositories",
-    "智能聊天": "Chat with GitHub intelligence",
+    "智能聊天": "AI GitHub 项目推荐助手",
     "AI 问答": "Ask about current repository",
     "项目分析": "Analyze repository structure",
     "项目对比": "Compare repositories",
@@ -737,6 +927,8 @@ def init_state() -> None:
     st.session_state.setdefault("compare_repos", [])
     st.session_state.setdefault("chat_messages", [])
     st.session_state.setdefault("chat_memory", {})
+    st.session_state.setdefault("chat_pending_artifact", None)
+    st.session_state.setdefault("chat_artifact_counter", 0)
     st.session_state.setdefault("last_user_message", "")
     st.session_state.setdefault("last_answer", "")
 
@@ -791,8 +983,8 @@ def render_sidebar() -> str:
         label_visibility="collapsed",
     )
 
-    st.sidebar.markdown('<div class="side-section">Projects</div>', unsafe_allow_html=True)
-    st.sidebar.button("+  New Project", use_container_width=True, on_click=start_new_project)
+    st.sidebar.markdown('<div class="side-section">Chat</div>', unsafe_allow_html=True)
+    st.sidebar.button("＋ 新对话", use_container_width=True, on_click=start_new_chat)
 
     st.sidebar.markdown('<div class="side-section">History</div>', unsafe_allow_html=True)
     history_label = st.session_state.last_user_message or "No recent request"
@@ -801,6 +993,26 @@ def render_sidebar() -> str:
         unsafe_allow_html=True,
     )
     st.sidebar.markdown('<div class="side-muted">See all</div>', unsafe_allow_html=True)
+
+    selected_repos = st.session_state.compare_repos
+    st.sidebar.markdown('<div class="side-section">项目对比</div>', unsafe_allow_html=True)
+    if selected_repos:
+        for repo in selected_repos:
+            st.sidebar.markdown(
+                f'<div class="side-muted">✓ {html.escape(repo.get("full_name") or "")}</div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        st.sidebar.markdown('<div class="side-muted">尚未选择项目</div>', unsafe_allow_html=True)
+    st.sidebar.button(
+        f"开始对比（{len(selected_repos)}）",
+        type="primary",
+        use_container_width=True,
+        disabled=len(selected_repos) < 2,
+        on_click=queue_selected_comparison,
+    )
+    if selected_repos:
+        st.sidebar.button("清空对比", use_container_width=True, on_click=clear_selected_comparison)
 
     provider_labels = {
         name: meta["label"] for name, meta in config.LLM_PROVIDERS.items()
@@ -837,6 +1049,40 @@ def render_sidebar() -> str:
     return page
 
 
+def start_new_chat() -> None:
+    st.session_state.chat_messages = []
+    st.session_state.chat_memory = {}
+    st.session_state.chat_pending_artifact = None
+    st.session_state.chat_artifact_counter = 0
+    st.session_state.search_results = []
+    st.session_state.compare_repos = []
+    st.session_state.last_user_message = ""
+    st.session_state.last_answer = ""
+    st.session_state.active_page = "智能聊天"
+
+
+def queue_selected_comparison() -> None:
+    repos = st.session_state.get("compare_repos", [])
+    if len(repos) < 2:
+        return
+    names = " 和 ".join(repo.get("full_name", "") for repo in repos if repo.get("full_name"))
+    st.session_state.active_page = "智能聊天"
+    submit_chat(f"请对比这些项目：{names}")
+
+
+def submit_chat_from_action(message: str) -> None:
+    st.session_state.active_page = "智能聊天"
+    submit_chat(message)
+
+
+def start_learning_plan(repo_name: str) -> None:
+    submit_chat_from_action(f"请为 {repo_name} 制定一个 2 周学习计划")
+
+
+def clear_selected_comparison() -> None:
+    st.session_state.compare_repos = []
+
+
 def start_new_project() -> None:
     st.session_state.current_repo = None
     st.session_state.analysis = None
@@ -846,12 +1092,14 @@ def start_new_project() -> None:
 def render_top_bar(page: str) -> None:
     context = PAGE_CONTEXT.get(page, page)
     private_state = "Private" if config.GITHUB_TOKEN else "Public"
+    provider_label = config.LLM_PROVIDERS.get(st.session_state.llm.provider, {}).get("label", "Rules")
+    model_label = st.session_state.llm.model if st.session_state.llm.is_ready() else "Rules fallback"
     st.markdown(
         f"""
         <div class="top-bar">
             <div class="top-context">{html.escape(context)}</div>
             <div class="top-actions">
-                <span class="top-pill">◇ Imagine</span>
+                <span class="top-pill">{html.escape(provider_label)} · {html.escape(model_label)}</span>
                 <span class="top-pill secondary">◌ {private_state}</span>
             </div>
         </div>
@@ -862,7 +1110,7 @@ def render_top_bar(page: str) -> None:
 
 def render_chat() -> None:
     stats = st.session_state.kb.get_statistics()
-    main_col, thought_col = st.columns([1.85, 0.9], gap="large")
+    _, main_col, _ = st.columns([0.55, 6.4, 0.55])
 
     with main_col:
         if st.session_state.chat_messages or st.session_state.search_results:
@@ -870,156 +1118,105 @@ def render_chat() -> None:
         else:
             render_chat_landing(stats)
 
-    with thought_col:
-        render_thoughts_panel(stats)
+    prompt = st.chat_input("描述你想找的项目，例如：适合新手学习的 Python AI Agent 项目")
+    if prompt and prompt.strip():
+        submit_chat(prompt.strip())
+        st.rerun()
 
 
 def render_chat_landing(stats: Dict[str, Any]) -> None:
-    current_repo = (st.session_state.current_repo or {}).get("full_name", "未选择")
+    provider = config.LLM_PROVIDERS.get(st.session_state.llm.provider, {}).get("label", "Rules")
+    model_state = f"{provider} · {st.session_state.llm.model}" if st.session_state.llm.is_ready() else "规则推荐模式"
     st.markdown(
         f"""
         <div class="chat-home">
             <div class="chat-logo-row">
                 <div class="brand-mark">{APP_MARK_SVG}</div>
-                <div class="chat-title">Agent</div>
             </div>
-            <div class="chat-subtitle">Search, analyze, compare and learn from GitHub projects.</div>
+            <div class="chat-title">今天想探索什么开源项目？</div>
+            <div class="chat-subtitle">告诉我你的目标、技术栈或经验水平。我会搜索 GitHub、解释推荐理由，并在后续对话中继续帮你筛选、比较和制定学习路线。</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    render_prompt_composer("home", "How can I help with GitHub projects today?")
     render_quick_actions("home")
     st.markdown(
         f"""
-        <div class="connect-card">
-            <div>
-                <div class="connect-title">GitHub workspace ready</div>
-                <div class="connect-copy">收藏 {stats["favorites_count"]} · 学习 {stats["learning_records"]} · 当前项目 {html.escape(current_repo)}</div>
-            </div>
-            <div class="connect-action">Analyze</div>
-        </div>
+        <div class="chat-status-line">{html.escape(model_state)} · 已收藏 {stats["favorites_count"]} 个项目 · 支持连续追问</div>
         """,
         unsafe_allow_html=True,
     )
 
 
 def render_chat_thread() -> None:
-    st.markdown('<div class="thread-shell">', unsafe_allow_html=True)
-    toolbar_left, toolbar_mid, toolbar_right = st.columns([4.5, 0.8, 0.8])
-    toolbar_left.markdown('<div class="muted">Thought for current GitHub request</div>', unsafe_allow_html=True)
-    if toolbar_mid.button("清空", key="thread_clear", use_container_width=True):
-        st.session_state.chat_messages = []
-        st.session_state.chat_memory = {}
-        st.session_state.last_user_message = ""
-        st.session_state.last_answer = ""
-        st.session_state.search_results = []
+    first_request = next(
+        (message.get("content", "") for message in st.session_state.chat_messages if message.get("role") == "user"),
+        "GitHub 项目推荐",
+    )
+    toolbar_left, toolbar_mid, toolbar_right = st.columns([4.8, 0.9, 0.9])
+    toolbar_left.markdown(
+        f"""
+        <div class="thread-heading">
+            <div class="thread-heading-title">{html.escape(first_request[:52])}</div>
+            <div class="thread-heading-copy">可以继续追问语言、Stars、活跃度、难度或项目对比</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if toolbar_mid.button("新对话", key="thread_clear", use_container_width=True):
+        start_new_chat()
         st.rerun()
     if toolbar_right.button("重试", key="thread_retry", use_container_width=True) and st.session_state.last_user_message:
         submit_chat(st.session_state.last_user_message, regenerate=True)
         st.rerun()
 
     for message in st.session_state.chat_messages:
-        with st.chat_message(message["role"]):
+        avatar = "🤖" if message["role"] == "assistant" else None
+        with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"], unsafe_allow_html=message["role"] == "assistant")
-
-    render_chat_artifacts()
-    render_prompt_composer("thread", "Ask anything")
-
-    if st.session_state.last_answer:
-        with st.expander("复制最近回答"):
-            st.code(st.session_state.last_answer, language="markdown")
-    st.markdown("</div>", unsafe_allow_html=True)
-
+            artifact = message.get("artifact")
+            if artifact and artifact.get("type") == "repo_recommendations":
+                render_recommendation_artifact(artifact)
 
 def render_quick_actions(key_prefix: str) -> None:
     quick_prompts = [
-        ("找 Agent 项目", "帮我找适合学习 AI Agent 的 Python 项目"),
-        ("项目对比", "对比 LangGraph、CrewAI 和 AutoGen"),
-        ("项目介绍", "介绍一下 langchain-ai/langchain"),
-        ("学习计划", "给我一个 2 周学习计划"),
+        ("寻找 AI Agent 项目", "帮我找适合学习 AI Agent 的 Python 项目"),
+        ("寻找 RAG 入门项目", "推荐几个适合新手学习 RAG 的 Python 项目"),
+        ("寻找活跃的前端项目", "找最近仍活跃维护的 TypeScript 前端项目"),
+        ("比较热门 Agent 框架", "对比 LangGraph、CrewAI 和 AutoGen"),
     ]
-    cols = st.columns(4)
+    cols = st.columns(2)
     for idx, (label, prompt) in enumerate(quick_prompts):
-        with cols[idx]:
-            if st.button(label, key=f"{key_prefix}_quick_{idx}", use_container_width=True, help=prompt):
-                submit_chat(prompt)
-                st.rerun()
-
-
-def render_prompt_composer(key_prefix: str, placeholder: str) -> None:
-    with st.container(border=True):
-        with st.form(f"{key_prefix}_prompt_form", clear_on_submit=True):
-            prompt_col, mode_col, send_col = st.columns([5.8, 1.2, 0.6])
-            prompt = prompt_col.text_input("Prompt", placeholder=placeholder, label_visibility="collapsed")
-            mode = mode_col.selectbox("Mode", ["Auto", "Expert", "Scout"], label_visibility="collapsed")
-            submitted = send_col.form_submit_button("↑", type="primary", use_container_width=True)
-
-    if submitted and prompt.strip():
-        message = prompt.strip()
-        if mode == "Expert":
-            message = f"请用专家视角分析：{message}"
-        elif mode == "Scout":
-            message = f"请优先搜索并推荐项目：{message}"
-        submit_chat(message)
-        st.rerun()
-
-
-def render_thoughts_panel(stats: Dict[str, Any]) -> None:
-    current_repo = (st.session_state.current_repo or {}).get("full_name") or "No repository selected"
-    last_request = st.session_state.last_user_message or "Waiting for a request"
-    search_count = len(st.session_state.search_results)
-    compare_count = len(st.session_state.compare_repos)
-    llm_state = "LLM ready" if st.session_state.llm.is_ready() else "Rules fallback active"
-    github_state = "Token configured" if config.GITHUB_TOKEN else "Public GitHub limit"
-    st.markdown(
-        f"""
-        <div class="thought-panel">
-            <div class="thought-header">
-                <span>Thoughts</span>
-                <span class="thought-close">×</span>
-            </div>
-            <div class="thought-block">
-                <div class="thought-title">◌ Thinking about your request</div>
-                <ul>
-                    <li>{html.escape(last_request[:96])}</li>
-                    <li>{html.escape(llm_state)}</li>
-                    <li>{html.escape(github_state)}</li>
-                </ul>
-            </div>
-            <div class="thought-block">
-                <div class="thought-title">⌕ Scanning GitHub</div>
-                <ul>
-                    <li>{search_count} recommended projects in the current result set.</li>
-                    <li>Current repository: {html.escape(current_repo)}</li>
-                    <li>{compare_count} projects are staged for comparison.</li>
-                </ul>
-            </div>
-            <div class="thought-block">
-                <div class="thought-title">◇ Preparing next action</div>
-                <ul>
-                    <li>Favorites: {stats["favorites_count"]}</li>
-                    <li>Learning records: {stats["learning_records"]}</li>
-                    <li>Questions answered: {stats["qa_count"]}</li>
-                </ul>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        with cols[idx % 2]:
+            st.button(
+                label,
+                key=f"{key_prefix}_quick_{idx}",
+                use_container_width=True,
+                help=prompt,
+                on_click=submit_chat_from_action,
+                args=(prompt,),
+            )
 
 
 def submit_chat(message: str, regenerate: bool = False) -> None:
-    if not regenerate:
+    if regenerate and st.session_state.chat_messages:
+        if st.session_state.chat_messages[-1].get("role") == "assistant":
+            st.session_state.chat_messages.pop()
+    else:
         st.session_state.chat_messages.append({"role": "user", "content": message})
     st.session_state.last_user_message = message
-    with st.spinner("AI GitHub Agent 正在搜索、分析和总结..."):
+    st.session_state.chat_pending_artifact = None
+    with st.spinner("正在理解需求并搜索 GitHub..."):
         try:
             answer = handle_chat_message(message)
         except GitHubAPIError as exc:
             answer = f"GitHub 数据获取失败：{exc}"
     st.session_state.last_answer = answer
-    st.session_state.chat_messages.append({"role": "assistant", "content": answer})
+    assistant_message: Dict[str, Any] = {"role": "assistant", "content": answer}
+    if st.session_state.chat_pending_artifact:
+        assistant_message["artifact"] = st.session_state.chat_pending_artifact
+    st.session_state.chat_messages.append(assistant_message)
+    st.session_state.chat_pending_artifact = None
 
 
 def handle_chat_message(message: str) -> str:
@@ -1041,11 +1238,19 @@ def handle_chat_message(message: str) -> str:
 
 
 def chat_search(routed: Dict[str, Any]) -> str:
-    filters = routed["filters"]
+    filters = dict(routed["filters"])
     query = routed["query"]
-    if routed["intent"] == "refine_search" and st.session_state.chat_memory.get("last_search_query"):
-        query = st.session_state.chat_memory["last_search_query"]
-        filters = {**st.session_state.chat_memory.get("last_filters", {}), **filters}
+    memory = st.session_state.chat_memory
+    is_refinement = routed["intent"] == "refine_search" and memory.get("last_search_query")
+    if is_refinement:
+        query = memory["last_search_query"]
+        filters = {**memory.get("last_filters", {}), **filters}
+
+    raw = routed["raw"].lower()
+    wants_next_batch = is_refinement and any(
+        phrase in raw for phrase in ("更多", "换一批", "再来", "下一批", "还有吗")
+    )
+    page = int(memory.get("last_search_page", 1)) + 1 if wants_next_batch else 1
 
     repos = st.session_state.github.search_repos(
         query=query,
@@ -1054,17 +1259,32 @@ def chat_search(routed: Dict[str, Any]) -> str:
         license_id=filters.get("license", ""),
         recent=filters.get("recent", False),
         sort="updated" if filters.get("recent") else "stars",
-        per_page=10 if "更多" in routed["raw"] else 5,
+        per_page=10,
+        page=page,
     )
     repos = rank_recommendations(repos, routed["raw"], filters)
-    st.session_state.search_results = repos
-    st.session_state.chat_memory["last_search_query"] = query
-    st.session_state.chat_memory["last_filters"] = filters
-    st.session_state.chat_memory["last_repos"] = repos
 
     if not repos:
+        if wants_next_batch:
+            return "这组条件下暂时没有更多结果了。你可以放宽 Stars、语言或最近更新时间，我会继续帮你找。"
+        st.session_state.search_results = []
         return f"没有找到明显匹配 `{query}` 的项目。可以换成更具体的技术词，例如 `LangGraph RAG Python`。"
-    return format_recommendations(repos, routed["raw"])
+
+    st.session_state.search_results = repos
+    memory["last_search_query"] = query
+    memory["last_filters"] = filters
+    memory["last_search_page"] = page
+    memory["last_repos"] = repos
+    st.session_state.chat_artifact_counter += 1
+    st.session_state.chat_pending_artifact = {
+        "type": "repo_recommendations",
+        "id": f"repos_{st.session_state.chat_artifact_counter}",
+        "query": query,
+        "filters": filters,
+        "page": page,
+        "repos": repos[:10],
+    }
+    return format_recommendations(repos, query, filters, page)
 
 
 def chat_compare(routed: Dict[str, Any]) -> str:
@@ -1075,14 +1295,14 @@ def chat_compare(routed: Dict[str, Any]) -> str:
     st.session_state.compare_repos = repos
     st.session_state.chat_memory["last_compare_repos"] = repos
     basic = format_compare_table(repos)
-
-    if st.session_state.llm.is_ready():
-        try:
-            report = st.session_state.llm.compare_repos(repos)
-            return f"{basic}\n\n{report}"
-        except Exception as exc:
-            return f"{basic}\n\nLLM 对比报告生成失败: {exc}"
-    return basic + "\n\n推荐选择：新手优先选文档清晰、示例多、最近仍活跃维护的项目；生产环境还需要人工复核 License、Release 节奏和 issue 响应。"
+    best = max(repos, key=lambda repo: st.session_state.analyzer.recommendation_score(repo))
+    hottest = max(repos, key=lambda repo: repo.get("stargazers_count", 0) or 0)
+    return (
+        f"已对比你在侧边栏选择的 **{len(repos)} 个项目**。\n\n{basic}\n\n"
+        f"综合评分最高的是 **{best.get('full_name') or ''}**；"
+        f"GitHub Stars 最高的是 **{hottest.get('full_name') or ''}**。"
+        "如果你告诉我使用场景，我还可以继续给出更具体的选型建议。"
+    )
 
 
 def chat_intro(routed: Dict[str, Any]) -> str:
@@ -1137,14 +1357,37 @@ def chat_general(routed: Dict[str, Any]) -> str:
     context = ""
     if st.session_state.analysis:
         context = st.session_state.analysis.get("context", "")
-    if st.session_state.llm.is_ready() and context:
+    if st.session_state.llm.is_ready():
+        recent_messages = st.session_state.chat_messages[-8:]
+        conversation = "\n".join(
+            f"{'用户' if message.get('role') == 'user' else '助手'}：{message.get('content', '')[:2500]}"
+            for message in recent_messages
+        )
+        project_context = f"\n\n当前项目上下文：\n{context[:7000]}" if context else ""
         try:
-            return st.session_state.llm.answer_question(routed["raw"], context)
+            answer = st.session_state.llm.generate(
+                f"""请自然回复用户的最后一条消息。
+
+最近对话：
+{conversation}
+{project_context}
+""",
+                (
+                    "你是 AI GitHub Agent。你可以像通用聊天助手一样正常交流，也擅长 GitHub 项目发现、"
+                    "技术分析、项目对比和学习规划。普通聊天直接回答，不要生硬地把每个问题都转成项目搜索；"
+                    "只有用户明确提出寻找或推荐项目时，搜索流程才会由系统单独处理。"
+                ),
+                max_tokens=1200,
+            )
+            if answer:
+                return answer
         except Exception as exc:
-            return f"我尝试基于当前项目回答，但 LLM 调用失败: {exc}"
+            return f"这次普通对话调用失败了：{exc}。你仍可以继续提出 GitHub 项目搜索或分析需求。"
+    if any(word in routed["raw"].lower() for word in ("你好", "hello", "hi", "嗨")):
+        return "你好！我们可以正常聊天。需要找开源项目时，直接描述目标、技术栈和经验水平，我会切换到 GitHub 推荐流程。"
     if st.session_state.search_results:
-        return "你可以继续说：`对比第 1 和第 3 个`、`介绍第 1 个`、`给第 1 个学习计划`，我会基于刚才的推荐继续处理。"
-    return "我主要处理 GitHub 项目搜索、介绍、对比和学习规划。你可以直接输入：`帮我找适合学习 RAG 的 Python 项目`。"
+        return "当然可以继续聊。关于刚才的推荐，你也可以直接补充筛选条件、询问某个项目，或把多个项目加入侧边栏后开始对比。"
+    return "可以，我们可以正常聊天。当前未配置可用的大模型时，我会优先处理 GitHub 项目搜索、介绍、对比和学习规划。"
 
 
 def render_home() -> None:
@@ -1538,57 +1781,78 @@ PROJECT_ALIASES = {
 }
 
 
-def render_chat_artifacts() -> None:
-    repos = st.session_state.get("search_results", [])
-    if repos:
-        st.divider()
-        st.markdown("### 推荐项目")
-        for idx, repo in enumerate(repos[:5], start=1):
-            score = st.session_state.analyzer.recommendation_score(repo)
-            repo_name = html.escape(repo.get("full_name") or "")
-            repo_desc = html.escape(repo.get("description") or "暂无描述")
-            repo_url = html.escape(repo.get("html_url") or "")
-            repo_lang = html.escape(repo.get("language") or "Unknown")
-            st.markdown(
-                f"""
-                <div class="repo-card">
-                    <div class="repo-title">{idx}. <a href="{repo_url}">{repo_name}</a></div>
-                    <div class="repo-desc">{repo_desc}</div>
-                    <div class="repo-meta">
-                        <span class="repo-chip">Stars {format_count(repo.get('stargazers_count', 0))}</span>
-                        <span class="repo-chip">Forks {format_count(repo.get('forks_count', 0))}</span>
-                        <span class="repo-chip">{repo_lang}</span>
-                        <span class="repo-chip">更新 {(repo.get('pushed_at') or repo.get('updated_at') or '')[:10]}</span>
-                        <span class="repo-chip">推荐 {score}/10</span>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
-            with c1:
-                if c1.button("查看介绍", key=f"chat_intro_{idx}"):
-                    if run_analysis(repo["full_name"], load_issues=False):
-                        answer = format_project_intro(st.session_state.analysis)
-                        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
-                        st.session_state.last_answer = answer
-                        st.rerun()
-            with c2:
-                if c2.button("加入对比", key=f"chat_compare_add_{idx}"):
-                    add_compare_repo(repo)
-                    st.toast("已加入对比")
-            with c3:
-                if c3.button("学习计划", key=f"chat_plan_{idx}"):
-                    if run_analysis(repo["full_name"], load_issues=False):
-                        answer = format_learning_plan(st.session_state.analysis, "2 周", "普通开发者")
-                        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
-                        st.session_state.last_answer = answer
-                        st.rerun()
-            c4.caption(rule_recommendation(repo, score))
+def render_recommendation_artifact(artifact: Dict[str, Any]) -> None:
+    repos = artifact.get("repos", [])
+    if not repos:
+        return
 
-    if st.session_state.get("compare_repos"):
-        with st.expander("当前对比列表"):
-            st.markdown(format_compare_table(st.session_state.compare_repos), unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="recommendation-heading">
+            <span>推荐项目</span>
+            <span class="recommendation-count">第 {artifact.get('page', 1)} 批 · {len(repos)} 个</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    selected_names = {
+        repo.get("full_name") for repo in st.session_state.get("compare_repos", [])
+    }
+    artifact_id = artifact.get("id", f"repos_{artifact.get('page', 1)}")
+    for idx, repo in enumerate(repos, start=1):
+        score = st.session_state.analyzer.recommendation_score(repo)
+        repo_name_raw = repo.get("full_name") or ""
+        repo_name = html.escape(repo_name_raw)
+        repo_desc = html.escape(repo.get("description") or "暂无项目介绍")
+        repo_url = html.escape(repo.get("html_url") or f"https://github.com/{repo_name_raw}")
+        technologies = repo_technologies(repo)
+        tech_chips = "".join(
+            f'<span class="repo-chip">{html.escape(technology)}</span>'
+            for technology in technologies
+        )
+        reason = html.escape(rule_recommendation(repo, score))
+        updated = (repo.get("pushed_at") or repo.get("updated_at") or "")[:10]
+        st.markdown(
+            f"""
+            <a class="repo-card-link" href="{repo_url}" target="_blank" rel="noopener noreferrer">
+                <div class="repo-card">
+                    <div class="repo-title">
+                        <span class="repo-rank">{idx}</span>
+                        <span>{repo_name}</span>
+                        <span class="repo-open-mark">↗</span>
+                    </div>
+                    <div class="repo-desc">{repo_desc}</div>
+                    <div class="repo-tech-label">用到技术</div>
+                    <div class="repo-meta">{tech_chips}</div>
+                    <div class="repo-meta">
+                        <span class="repo-chip">GitHub Stars {format_count(repo.get('stargazers_count', 0))}</span>
+                        <span class="repo-chip">最近更新 {html.escape(updated or '未知')}</span>
+                        <span class="repo-score">评分 {score}/10</span>
+                    </div>
+                    <div class="repo-reason">{reason}</div>
+                </div>
+            </a>
+            """,
+            unsafe_allow_html=True,
+        )
+        is_selected = repo_name_raw in selected_names
+        learn_col, compare_col, _ = st.columns([1.45, 1.15, 3.2])
+        learn_col.button(
+            "启动学习计划",
+            key=f"chat_plan_{artifact_id}_{idx}",
+            use_container_width=True,
+            on_click=start_learning_plan,
+            args=(repo_name_raw,),
+        )
+        compare_col.button(
+            "已加入对比" if is_selected else "加入对比",
+            key=f"chat_compare_{artifact_id}_{idx}",
+            use_container_width=True,
+            disabled=is_selected,
+            on_click=add_compare_repo,
+            args=(repo,),
+        )
 
 
 def rank_recommendations(repos: List[Dict[str, Any]], user_need: str, filters: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -1615,27 +1879,68 @@ def rank_recommendations(repos: List[Dict[str, Any]], user_need: str, filters: D
     return [repo for _, repo in ranked]
 
 
-def format_recommendations(repos: List[Dict[str, Any]], user_need: str) -> str:
+def format_recommendations(
+    repos: List[Dict[str, Any]],
+    query: str,
+    filters: Dict[str, Any],
+    page: int,
+) -> str:
     top = repos[0]
-    lines = [
-        f"""
-<div class="answer-summary">
-我找到了 <b>{len(repos)}</b> 个相关项目。最值得先看的是
-<b>{html.escape(top.get('full_name') or '')}</b>：
-{html.escape(top.get('description') or '暂无描述')}
-</div>
-""",
-        "下面的项目卡片可以直接查看介绍、加入对比或生成学习计划。",
-        "",
-        "你也可以继续问：`对比第 1 和第 3 个`、`介绍第 1 个`、`换成更适合新手的`。",
-    ]
-    return "\n".join(lines)
+    filter_text = format_search_filters(filters)
+    batch_text = f"这是第 {page} 批结果。" if page > 1 else ""
+    safe_query = html.escape(query)
+    safe_top_name = html.escape(top.get("full_name") or "")
+    safe_top_description = html.escape(top.get("description") or "暂无描述")
+    return (
+        f"我按 **{safe_query}** 为你整理了 **{len(repos)} 个** GitHub 项目"
+        f"{filter_text}。{batch_text}\n\n"
+        f"本轮首选是 **{safe_top_name}**：{safe_top_description}\n\n"
+        "点击任意项目主卡片可打开 GitHub 详情页；也可以直接启动学习计划或加入侧边栏对比。"
+        "你还可以继续说“只看 TypeScript”“Stars 至少 1000”或“换一批”。"
+    )
+
+
+def format_search_filters(filters: Dict[str, Any]) -> str:
+    labels = []
+    if filters.get("language"):
+        labels.append(str(filters["language"]))
+    if filters.get("min_stars"):
+        labels.append(f"Stars ≥ {filters['min_stars']}")
+    if filters.get("recent"):
+        labels.append("近半年活跃")
+    if filters.get("license"):
+        labels.append(str(filters["license"]).upper())
+    if filters.get("difficulty"):
+        labels.append(str(filters["difficulty"]))
+    return f"（筛选：{html.escape('、'.join(labels))}）" if labels else ""
+
+
+def repo_technologies(repo: Dict[str, Any]) -> List[str]:
+    technologies: List[str] = []
+    language = repo.get("language")
+    if language:
+        technologies.append(str(language))
+    for topic in repo.get("topics") or []:
+        label = str(topic).strip()
+        if label and label.lower() not in {item.lower() for item in technologies}:
+            technologies.append(label)
+        if len(technologies) >= 5:
+            break
+    return technologies or ["技术栈待分析"]
 
 
 def resolve_repos_from_route(routed: Dict[str, Any]) -> List[Dict[str, Any]]:
     repos = []
+    cached_repos = list(st.session_state.get("compare_repos", [])) + list(
+        st.session_state.get("search_results", [])
+    )
+    cached_by_name = {
+        (repo.get("full_name") or "").lower(): repo
+        for repo in cached_repos
+        if repo.get("full_name")
+    }
     for repo_name in routed.get("repos", []):
-        repo = st.session_state.github.resolve_repo(repo_name)
+        repo = cached_by_name.get(repo_name.lower()) or st.session_state.github.resolve_repo(repo_name)
         if repo:
             repos.append(repo)
     if routed.get("indexes"):
@@ -1711,79 +2016,58 @@ def format_compare_table(repos: List[Dict[str, Any]]) -> str:
     if not repos:
         return ""
 
-    rows = compare_rows(repos)
-    header_cells = ['<th class="compare-dimension">维度</th>']
+    body_rows = []
     for repo in repos:
         repo_name = html.escape(repo.get("full_name") or "Unknown")
         repo_url = html.escape(repo.get("html_url") or "#")
         repo_desc = html.escape(repo.get("description") or "暂无描述")
-        language = html.escape(repo.get("language") or "Unknown")
         stars = html.escape(format_count(repo.get("stargazers_count", 0)))
-        forks = html.escape(format_count(repo.get("forks_count", 0)))
-        updated = html.escape((repo.get("pushed_at") or repo.get("updated_at") or "")[:10] or "未知")
-        header_cells.append(
-            f"""
-            <th>
-                <div class="compare-repo-name"><a href="{repo_url}" target="_blank">{repo_name}</a></div>
-                <div class="compare-repo-desc">{repo_desc}</div>
-                <div class="compare-chip-row">
-                    <span class="compare-chip">{language}</span>
-                    <span class="compare-chip">Stars {stars}</span>
-                    <span class="compare-chip">Forks {forks}</span>
-                    <span class="compare-chip">更新 {updated}</span>
-                </div>
-            </th>
-            """
+        score = st.session_state.analyzer.recommendation_score(repo)
+        technology_chips = "".join(
+            f'<span class="compare-chip">{html.escape(item)}</span>'
+            for item in repo_technologies(repo)
         )
-
-    body_rows = []
-    for label, values in rows:
-        cells = [f'<td class="compare-dimension">{html.escape(label)}</td>']
-        for value in values:
-            value_text = html.escape(str(value))
-            if label == "推荐指数":
-                value_text = f'<span class="compare-score">{value_text}</span>'
-            cells.append(f'<td><div class="compare-cell">{value_text}</div></td>')
-        body_rows.append("<tr>" + "".join(cells) + "</tr>")
+        body_rows.append(
+            f'<tr>'
+            f'<td><div class="compare-repo-name"><a href="{repo_url}" target="_blank" '
+            f'rel="noopener noreferrer">{repo_name}</a></div></td>'
+            f'<td><div class="compare-cell">{repo_desc}</div></td>'
+            f'<td><div class="compare-chip-row">{technology_chips}</div></td>'
+            f'<td><div class="compare-cell">{stars}</div></td>'
+            f'<td><span class="compare-score">{score}/10</span></td>'
+            f'</tr>'
+        )
 
     easiest = min(repos, key=lambda repo: (repo.get("size", 0) or 0))
     hottest = max(repos, key=lambda repo: repo.get("stargazers_count", 0) or 0)
-    return f"""
-<div class="compare-card">
-    <div class="compare-card-head">
-        <div>
-            <div class="compare-card-title">项目对比表格</div>
-            <div class="compare-card-subtitle">基于 GitHub 公开元数据生成，适合做学习选型和初筛。</div>
-        </div>
-        <div class="compare-card-count">{len(repos)} 个项目</div>
-    </div>
-    <div class="compare-table-wrap">
-        <table class="compare-table">
-            <thead><tr>{"".join(header_cells)}</tr></thead>
-            <tbody>{"".join(body_rows)}</tbody>
-        </table>
-    </div>
-    <div class="compare-recommendation">
-        <b>推荐选择：</b>新手优先看 <b>{html.escape(easiest.get("full_name") or "")}</b>；
-        看重社区热度优先评估 <b>{html.escape(hottest.get("full_name") or "")}</b>。
-        生产使用前继续复核 Release、Issue 响应、License 和依赖生态。
-    </div>
-</div>
-"""
-
-
-def compare_rows(repos: List[Dict[str, Any]]) -> List[tuple[str, List[str]]]:
-    return [
-        ("项目定位", [repo.get("description") or "无" for repo in repos]),
-        ("技术栈", [repo.get("language") or "Unknown" for repo in repos]),
-        ("社区热度", [f"{format_count(repo.get('stargazers_count', 0))} stars / {format_count(repo.get('forks_count', 0))} forks" for repo in repos]),
-        ("维护活跃度", [activity_level(repo) for repo in repos]),
-        ("文档质量", [doc_quality(repo) for repo in repos]),
-        ("上手难度", [difficulty(repo) for repo in repos]),
-        ("License", [(repo.get("license") or {}).get("name", "Unknown") for repo in repos]),
-        ("风险点", [risk_summary(repo) for repo in repos]),
-        ("推荐指数", [f"{Analyzer.recommendation_score(repo)}/10" for repo in repos]),
-    ]
+    return (
+        '<div class="compare-card">'
+        '<div class="compare-card-head">'
+        '<div>'
+        '<div class="compare-card-title">项目对比表格</div>'
+        '<div class="compare-card-subtitle">基于 GitHub 公开元数据生成，适合做学习选型和初筛。</div>'
+        '</div>'
+        f'<div class="compare-card-count">{len(repos)} 个项目</div>'
+        '</div>'
+        '<div class="compare-table-wrap">'
+        '<table class="compare-table">'
+        '<thead><tr>'
+        '<th>项目</th>'
+        '<th>简介</th>'
+        '<th>技术</th>'
+        '<th>GitHub Stars</th>'
+        '<th>评分</th>'
+        '</tr></thead>'
+        f'<tbody>{"".join(body_rows)}</tbody>'
+        '</table>'
+        '</div>'
+        '<div class="compare-recommendation">'
+        f'<b>推荐选择：</b>新手优先看 <b>{html.escape(easiest.get("full_name") or "")}</b>；'
+        f'看重社区热度优先评估 <b>{html.escape(hottest.get("full_name") or "")}</b>。'
+        '生产使用前继续复核 Release、Issue 响应、License 和依赖生态。'
+        '</div>'
+        '</div>'
+    )
 
 
 def format_project_intro(analysis: Dict[str, Any]) -> str:

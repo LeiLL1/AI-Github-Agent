@@ -117,6 +117,7 @@ class GitHubClient:
         sort: str = "stars",
         order: str = "desc",
         per_page: int = 10,
+        page: int = 1,
     ) -> List[Dict[str, Any]]:
         q = query.strip()
         if language and language.lower() != "all":
@@ -135,6 +136,7 @@ class GitHubClient:
                 "sort": sort,
                 "order": order,
                 "per_page": min(max(per_page, 1), 50),
+                "page": max(int(page), 1),
             },
         )
         return data.get("items", []) if data else []

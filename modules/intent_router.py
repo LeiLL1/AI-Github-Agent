@@ -13,36 +13,62 @@ class IntentRouter:
     """Lightweight deterministic router for V1 chat interactions."""
 
     SEARCH_WORDS = ["找", "搜索", "推荐", "有没有", "项目", "仓库", "repo", "repository"]
+    PROJECT_SEARCH_HINTS = ["项目", "仓库", "github", "开源", "repo", "repository", "代码库", "框架"]
     COMPARE_WORDS = ["对比", "比较", "区别", "哪个更", "vs", "VS"]
+    PROJECT_COMPARE_HINTS = ["langgraph", "crewai", "autogen", "langchain", "llamaindex", "semantic kernel"]
     INTRO_WORDS = ["介绍", "分析", "总结", "讲讲", "是什么", "读懂"]
     LEARNING_WORDS = ["学习", "路线", "计划", "规划", "上手", "源码", "2 周", "两周", "一周", "3 天"]
     LEARNING_PLAN_WORDS = ["路线", "计划", "规划", "源码", "2 周", "两周", "一周", "3 天", "一个月"]
     MORE_WORDS = ["更多", "换一批", "再来", "更适合", "更简单", "新手", "生产", "商用", "活跃"]
+    REFINE_WORDS = ["只看", "只要", "换成", "改成", "至少", "限制", "优先", "最近", "维护", "star", "stars", "星"]
 
     def route(self, message: str, memory: Dict[str, Any]) -> Dict[str, Any]:
         text = (message or "").strip()
-        lowered = text.lower()
         repos = self.extract_repos(text)
         indexes = self.extract_indexes(text)
         filters = self.extract_filters(text)
+        has_search_context = bool(memory.get("last_search_query"))
+        has_learning_context = bool(
+            repos
+            or memory.get("current_repo")
+            or (indexes and has_search_context)
+        )
+        has_compare_project_hint = bool(
+            has_search_context
+            or repos
+            or indexes
+            or "项目" in text
+            or "仓库" in text
+            or self._contains(text, self.PROJECT_COMPARE_HINTS)
+        )
+        has_project_search_hint = self._contains(text, self.PROJECT_SEARCH_HINTS)
 
-        if self._contains(text, self.COMPARE_WORDS) or len(repos) >= 2 or len(indexes) >= 2:
+        if (
+            (self._contains(text, self.COMPARE_WORDS) and has_compare_project_hint)
+            or len(repos) >= 2
+            or (len(indexes) >= 2 and has_search_context)
+        ):
             intent = "compare"
-        elif self._contains(text, self.SEARCH_WORDS) and not repos:
-            intent = "search"
-        elif self._contains(text, self.LEARNING_PLAN_WORDS) or (
+        elif has_learning_context and (
+            self._contains(text, self.LEARNING_PLAN_WORDS)
+            or (
             repos and self._contains(text, self.LEARNING_WORDS)
+            )
         ):
             intent = "learning"
         elif repos and self._contains(text, self.INTRO_WORDS):
             intent = "intro"
         elif repos and not self._contains(text, self.SEARCH_WORDS):
             intent = "intro"
-        elif self._contains(text, self.MORE_WORDS) and memory.get("last_search_query"):
+        elif has_search_context and (
+            self._contains(text, self.MORE_WORDS)
+            or self._contains(text, self.REFINE_WORDS)
+            or (bool(filters) and not self._contains(text, self.SEARCH_WORDS))
+        ):
             intent = "refine_search"
-        elif self._contains(text, self.SEARCH_WORDS):
+        elif self._contains(text, self.SEARCH_WORDS) and has_project_search_hint:
             intent = "search"
-        elif "第" in text and indexes:
+        elif "第" in text and indexes and has_search_context:
             intent = "followup"
         else:
             intent = "chat"
@@ -95,6 +121,8 @@ class IntentRouter:
                 break
 
         star_match = re.search(r"(\d+)\s*(?:star|stars|\u661f)", lowered)
+        if not star_match:
+            star_match = re.search(r"(?:star|stars|\u661f)\s*(?:至少|>=|大于)?\s*(\d+)", lowered)
         if star_match:
             filters["min_stars"] = int(star_match.group(1))
         elif "热门" in text or "生产" in text:
@@ -116,10 +144,25 @@ class IntentRouter:
         if repos:
             return repos[0]
         query = text
+        replacements = {
+            "人工智能": "AI",
+            "智能体": "AI agent",
+            "检索增强生成": "RAG",
+            "大语言模型": "LLM",
+            "机器学习": "machine learning",
+            "深度学习": "deep learning",
+            "前端": "frontend",
+            "后端": "backend",
+            "工作流": "workflow",
+            "爬虫": "web crawler",
+        }
+        for source, target in replacements.items():
+            query = query.replace(source, f" {target} ")
         noise = [
             "帮我", "请", "找", "搜索", "推荐", "几个", "一些", "适合", "学习",
             "项目", "仓库", "GitHub", "github", "开源", "的", "有没有",
-            "更适合", "新手", "生产环境", "商用",
+            "更适合", "新手", "生产环境", "商用", "最近", "活跃", "维护",
+            "热门", "只看", "只要", "优先", "仍", "想", "我", "练手",
         ]
         for word in noise:
             query = query.replace(word, " ")
